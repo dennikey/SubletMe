@@ -3,7 +3,6 @@ import 'mdbreact/dist/css/mdb.css'
 import { MDBContainer, MDBRow, MDBCol, MDBFormInline, MDBIcon, MDBInput } from 'mdbreact'
 import { BrowserRouter as Router, Switch, Route, Link } from "react-router-dom"
 import '@fortawesome/fontawesome-free/css/all.min.css';
-import axios from 'axios'
 
 const OneSublet = ({name, location, price, phone, image}) => {
     let [imgData, setImgData] = React.useState([]);
@@ -39,18 +38,22 @@ const OneSublet = ({name, location, price, phone, image}) => {
                     <h5 class="card-title">${price}</h5>
                     <p class="card-text">{location}</p>
                    <center style={{display: "block"}}>
-                {
+                {/* {
                 imgData.map((img, index)=>{
-                    if(index < 2) {
+                    if(index = 1) {
                         return(
-                            <img key={index} src={img} style={{maxHeight: "400px", maxWidth: "400px"}}/>    
+                            <img key={index} src={img} style={{maxHeight: "400px", maxWidth: "400px", marginRight: "10px"}}/>    
+                        )
+                    } else if(index == 2){
+                        return(
+                            <img key={index} src={img} style={{maxHeight: "400px", maxWidth: "400px", marginLeft: "10px"}}/>
                         )
                     } else {
                         return(<div></div>)
                     }
-                    })}
+                    })} */}
              </center>
-             <center>
+         
                     <Link 
                         class="btn btn-green"
                         to={{
@@ -59,7 +62,7 @@ const OneSublet = ({name, location, price, phone, image}) => {
                         View Details
                         
                     </Link>
-                    </center>
+                    
                 </div>
             </div>
             <div style={{padding: '15px'}}>
@@ -181,4 +184,4 @@ const ListSublet = ({allSublets}) => {
     )
 }
 
-export default ListSublett
+export default ListSublet
