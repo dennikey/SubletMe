@@ -73,4 +73,3 @@ const Nav = ({open, handleOpen}) => {
 }
 
 export default Nav
-

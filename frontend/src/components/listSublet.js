@@ -2,9 +2,33 @@ import React, {useState} from 'react'
 import 'mdbreact/dist/css/mdb.css'
 import { MDBContainer, MDBRow, MDBCol, MDBFormInline, MDBIcon, MDBInput } from 'mdbreact'
 import { BrowserRouter as Router, Switch, Route, Link } from "react-router-dom"
-import '@fortawesome/fontawesome-free/css/all.min.css'
+import '@fortawesome/fontawesome-free/css/all.min.css';
+import axios from 'axios'
 
-const OneSublet = ({name, location, price, phone}) => {
+const OneSublet = ({name, location, price, phone, image}) => {
+    let [imgData, setImgData] = React.useState([]);
+  
+
+    let arrayBufferToBase64 = (buffer) => {
+        var binary = '';
+        var bytes = [].slice.call(new Uint8Array(buffer));
+        bytes.forEach((b) => binary += String.fromCharCode(b));
+        return window.btoa(binary);
+    };
+
+    React.useEffect(()=>{
+        image.map((image)=>{
+            if(image != undefined){
+                let base64Flag = 'data:imge/jpeg;base64,';
+                let imgStr = arrayBufferToBase64(image.data.data);
+                let imgInfo = base64Flag + imgStr;
+                setImgData(imgData => [...imgData, imgInfo]);
+            }
+        })
+    }, [])
+
+
+
     return (
         <div>
             <div class="card">
@@ -14,13 +38,28 @@ const OneSublet = ({name, location, price, phone}) => {
                 <div class="card-body">
                     <h5 class="card-title">${price}</h5>
                     <p class="card-text">{location}</p>
+                   <center style={{display: "block"}}>
+                {
+                imgData.map((img, index)=>{
+                    if(index < 2) {
+                        return(
+                            <img key={index} src={img} style={{maxHeight: "400px", maxWidth: "400px"}}/>    
+                        )
+                    } else {
+                        return(<div></div>)
+                    }
+                    })}
+             </center>
+             <center>
                     <Link 
                         class="btn btn-green"
                         to={{
                             pathname: `/oneSublet/${phone}`
                         }}>
                         View Details
+                        
                     </Link>
+                    </center>
                 </div>
             </div>
             <div style={{padding: '15px'}}>
@@ -35,6 +74,18 @@ const ListSublet = ({allSublets}) => {
     const [filterSublets, setFilterSublets] = useState(allSublets)
     const [filterName, setFilterName] = useState(false)
     const [filterPrice, setFilterPrice] = useState(false)
+    const [buffer, setBuffer] = useState(0);
+
+    React.useEffect(()=>{
+        setFilterSublets(allSublets);
+        if(allSublets.length === 0){
+            setBuffer(0);
+        } else if (allSublets[0] == 5){
+            setBuffer(1)
+        } else {
+            setBuffer(2);
+        }
+    }, [allSublets])
 
     const original = allSublets
 
@@ -43,6 +94,24 @@ const ListSublet = ({allSublets}) => {
             setFilterSublets(allSublets)
         } else {
             setFilterSublets(filterSublets.filter(sublet => sublet.name == filter))
+        }
+    }
+
+    const displayResult = () => {
+        if(buffer == 0){
+            return(
+                <h3>Loading Results ...</h3>
+            )
+        } else if (buffer == 1) {
+            return(
+                <h3>No Results Are Currently Available</h3>
+            )
+        } else {
+            return(
+            <ul>
+                {filterSublets.map(sublet => <OneSublet name={sublet.name} location={sublet.location} price={sublet.price} phone={sublet.phone} image={sublet.image}/>) }
+            </ul>
+            )
         }
     }
 
@@ -106,12 +175,10 @@ const ListSublet = ({allSublets}) => {
                     </MDBFormInline>
                 </MDBCol>
                 <br></br>
-                <ul>
-                    { filterSublets.map(sublet => <OneSublet name={sublet.name} location={sublet.location} price={sublet.price} phone={sublet.phone} />) }
-                </ul>
+                {displayResult()}
             </div>
         </MDBContainer>
     )
 }
 
-export default ListSublet
+export default ListSublett
