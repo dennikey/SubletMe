@@ -22,7 +22,12 @@ const App = () => {
     location: '',
     price: 0,
     phone: '',
-    image: []
+    image: [],
+    parking: false,
+    bathroom: 0,
+    internet: false,
+    utilities: false,
+    description: ""
   })
   const [ sublets, setSublets ] = useState([])
   const [ map, setMap ] = useState(false);
@@ -54,6 +59,7 @@ const App = () => {
     event.preventDefault()
     let data = new FormData();
     console.log(images);
+    console.log(formInfo);
     images.map((pic)=>{
       data.append("image", pic);
     })
@@ -64,6 +70,11 @@ const App = () => {
     data.append("phone", formInfo.phone);
     data.append("userName", user.name);
     data.append("email", user.email);
+    data.append("parking", formInfo.parking);
+    data.append("bathroom", formInfo.bathroom);
+    data.append("internet", formInfo.internet);
+    data.append("utilities", formInfo.utilities);
+    data.append("description", formInfo.description);
     try {
       const response = await axios.post("/api/uploadSublet", data, {
         header: {
@@ -96,9 +107,15 @@ const App = () => {
   }
 
   const handleForm = (event) => {
+    console.log(formInfo);
     if(event.target == undefined){
       console.log("got here");
       setImages(images => images.concat(event));
+    } else if (event.target.value == "on"){
+      setFormInfo({
+        ...formInfo,
+        [event.target.name]: event.target.checked
+      })
     } else {
     setFormInfo({
       ...formInfo,
@@ -107,11 +124,14 @@ const App = () => {
   }
   }
 
-  const handleInfo = (name, location) => {
+  const handleInfo = (name, location, parking, internet, utilities) => {
     setFormInfo({
       ...formInfo,
       name: name, 
-      location: location
+      location: location,
+      parking: parking,
+      internet: internet,
+      utilities: utilities
     })
   }
 
@@ -127,19 +147,19 @@ const App = () => {
             <Home/>
           </Route>
           <Route path="/uploadSublet">
-            
+            <UploadSublet message={message} handleForm={handleForm} handleSubmit={handleSubmit} submitForm={submitForm} images={images} formInfo={formInfo} handleInfo={handleInfo}/>
           </Route>
           <Route path="/listSublet">
-            
+            <ListSublet allSublets={sublets} />
           </Route>
           <Route path="/oneSublet/:contact">
-            
+            <OneSublet allSublets={sublets} />
           </Route>
           <Route path="/profile">
-            
+            <Profile />
           </Route>
           <Route path="/contact">
-            
+            <Contact />
           </Route>
         </Switch>
       </div>
