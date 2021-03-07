@@ -7,6 +7,7 @@ const client = require('twilio')(process.env.TWILIO_ACCOUNT_SID, process.env.TWI
 const multer = require('multer');
 const subletModel = require('./models/subletSchema');
 const fs = require('fs'); 
+const fetch = require("node-fetch")
 
 const app = express()
 
@@ -17,7 +18,7 @@ app.use(bodyParser.json());
 app.use(pino);
 
 const dbUrl = process.env.MONGODB_URL
-
+const googleUrl = process.env.GOOGLE_API_KEY2
 
 let storage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -80,7 +81,10 @@ app.post('/api/uploadSublettest', async (req, res) => {
         const detections = result.textAnnotations;
         let outputJson = {
             name: '',
-            location: ''
+            location: '',
+            parking: false,
+            internet: false,
+            utilities: false
         };
         detections.forEach(text => {
             if (text.description == 'Fergus') {
@@ -94,6 +98,15 @@ app.post('/api/uploadSublettest', async (req, res) => {
             if (text.description == 'Hespeler') {
                 outputJson.name = 'Rez-One Hespeler House'
                 outputJson.location = '252 Phillip St, Waterloo, ON N2L 6B6'
+            }
+            if( text.description.toLowerCase().includes("parking")) {
+                outputJson.parking = true;
+            }
+            if( text.description.toLowerCase().includes("internet") || text.description.toLowerCase().includes("wifi")){
+                outputJson.internet = true;
+            }
+            if( text.description.toLowerCase().includes("utilities")){
+                outputJson.utilities = true;
             }
         });
         res.send(JSON.stringify({data: outputJson}))
@@ -136,7 +149,12 @@ app.post('/api/uploadSublet', upload.array('image'), (req, res, next) => {
         ),
         userName: req.body.userName,
         email: req.body.email,
-        date: dateString
+        date: dateString,
+        parking: req.body.parking,
+        bathroom: req.body.bathroom,
+        internet: req.body.internet,
+        utilities: req.body.utilities,
+        description: req.body.description
     }
     subletModel.create(obj, (err, item) => {
         if (err) {
@@ -152,6 +170,46 @@ app.post('/api/uploadSublet', upload.array('image'), (req, res, next) => {
         }
     });
 });
+
+app.get('/api/map/:location', async (req, res) => { 
+    try {
+        const addresses = ["200 University Ave W, Waterloo, ON N2L 3G1", "170 University Ave W, Waterloo, ON N2L 3E9", "75 University Ave W, Waterloo, ON N2L 3C5", "50 Young St W, Waterloo, ON N2L 2Z4", "200 Ring Rd, Waterloo, ON N2L 3G1"]
+        let obj = [];
+
+        /*
+        let promisearr = [];
+        addresses.forEach((address) => {
+            promisearr.push(fetch("https://maps.googleapis.com/maps/api/distancematrix/json?units=imperial&origins=" + req.params.location + "&destinations=" + address + "&key=" + googleUrl))
+        })
+
+        Promise.all(promisearr).then((info) => {
+            info.forEach((stuff) => {
+                console.log(stuff.json())
+            })
+        })
+        */
+        
+        const result1 = await fetch("https://maps.googleapis.com/maps/api/distancematrix/json?units=imperial&origins=" + req.params.location + "&destinations=" + addresses[0] + "&key=" + googleUrl)
+        const data1 = await result1.json();
+        obj.push(data1)
+        const result2 = await fetch("https://maps.googleapis.com/maps/api/distancematrix/json?units=imperial&origins=" + req.params.location + "&destinations=" + addresses[1] + "&key=" + googleUrl)
+        const data2 = await result2.json();
+        obj.push(data2)
+        const result3 = await fetch("https://maps.googleapis.com/maps/api/distancematrix/json?units=imperial&origins=" + req.params.location + "&destinations=" + addresses[2] + "&key=" + googleUrl)
+        const data3 = await result3.json();
+        obj.push(data3)
+        const result4 = await fetch("https://maps.googleapis.com/maps/api/distancematrix/json?units=imperial&origins=" + req.params.location + "&destinations=" + addresses[3] + "&key=" + googleUrl)
+        const data4 = await result4.json();
+        obj.push(data4)
+        const result5 = await fetch("https://maps.googleapis.com/maps/api/distancematrix/json?units=imperial&origins=" + req.params.location + "&destinations=" + addresses[4] + "&key=" + googleUrl)
+        const data5 = await result5.json();
+        obj.push(data5);
+        
+        res.json(obj)
+    } catch (err) {
+        res.json(err)
+    }
+})
 
 const Port = 5000
 
